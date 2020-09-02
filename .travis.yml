@@ -1,0 +1,31 @@
+
+
+# update elastic beanstalk
+
+sudo: required
+
+#docker as dependency
+services:
+    - docker
+
+#build version of react
+before_install:
+    - docker build -t nic0d3mus/react-test -f ./client/Dockerfile.dev ./client
+# run test
+script:
+    - docker run -e CI=true nic0d3mus/react-test npm test
+
+# build prod versions
+
+after_sucess:
+    - docker build -t nic0d3mus/multiple-client ./client
+    - docker build -t nic0d3mus/multiple-server ./server
+    - docker build -t nic0d3mus/multiple-nginx ./nginx
+    - docker build -t nic0d3mus/multiple-worker ./worker
+
+# push to docker hub
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push nic0d3mus/multiple-client
+    - docker push nic0d3mus/multiple-server
+    - docker push nic0d3mus/multiple-nginx
+    - docker push nic0d3mus/multiple-worker
